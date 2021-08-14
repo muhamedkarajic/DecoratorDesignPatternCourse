@@ -24,7 +24,7 @@ namespace DecoratorDesignPattern.Controllers
             _logger = _loggerFactory.CreateLogger<HomeController>();
 
             String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-            _weatherService = new WeatherService(apiKey);
+            _weatherService = new WeatherServiceLoggingDecorator(new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
         }
 
 
