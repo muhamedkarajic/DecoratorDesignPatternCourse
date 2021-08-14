@@ -32,18 +32,10 @@ namespace DecoratorDesignPattern
 
             services.AddMemoryCache();
 
-            services.AddScoped<IWeatherService>(serviceProvider =>
-            {
-                String apiKey = Configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-                var logger = serviceProvider.GetService<ILogger<WeatherServiceLoggingDecorator>>();
-                var memoryCache = serviceProvider.GetService<IMemoryCache>();
-
-                IWeatherService concreteService = new WeatherService(apiKey);
-                IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(concreteService, logger);
-                IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, memoryCache);
-
-                return withCachingDecorator;
-            });
+            String apiKey = Configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
+            services.AddScoped<IWeatherService>(serviceProvider => new WeatherService(apiKey));
+            services.Decorate<IWeatherService>((inner, provider) => new WeatherServiceLoggingDecorator(inner, provider.GetService<ILogger<WeatherServiceLoggingDecorator>>()));
+            services.Decorate<IWeatherService>((inner, provider) => new WeatherServiceCachingDecorator(inner, provider.GetService<IMemoryCache>()));
         }
 
 
