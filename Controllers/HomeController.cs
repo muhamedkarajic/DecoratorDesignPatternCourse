@@ -17,14 +17,20 @@ namespace DecoratorDesignPattern.Controllers
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<HomeController> _logger;
         private readonly IWeatherService _weatherService;
+        private readonly IMemoryCache _memoryCache;
 
         public HomeController(ILoggerFactory loggerFactory, IConfiguration configuration, IMemoryCache memoryCache)
         {
             _loggerFactory = loggerFactory;
             _logger = _loggerFactory.CreateLogger<HomeController>();
+            _memoryCache = memoryCache;
 
             String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-            _weatherService = new WeatherServiceLoggingDecorator(new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+
+            IWeatherService innerService = new WeatherService(apiKey);
+            IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(innerService, _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+            IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, _memoryCache);
+            _weatherService = withCachingDecorator;
         }
 
 
