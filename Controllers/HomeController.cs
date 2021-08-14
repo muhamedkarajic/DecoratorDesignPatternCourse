@@ -1,36 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using DecoratorDesignPattern.Models;
-using DecoratorDesignPattern.OpenWeatherMap;
 using DecoratorDesignPattern.WeatherInterface;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace DecoratorDesignPattern.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<HomeController> _logger;
         private readonly IWeatherService _weatherService;
-        private readonly IMemoryCache _memoryCache;
 
-        public HomeController(ILoggerFactory loggerFactory, IConfiguration configuration, IMemoryCache memoryCache)
+        public HomeController(ILogger<HomeController> logger, IWeatherService weatherService)
         {
-            _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<HomeController>();
-            _memoryCache = memoryCache;
-
-            String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-
-            IWeatherService innerService = new WeatherService(apiKey);
-            IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(innerService, _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
-            IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, _memoryCache);
-            _weatherService = withCachingDecorator;
+            _logger = logger;
+            _weatherService = weatherService;
         }
 
 
